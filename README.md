@@ -27,8 +27,11 @@ source venv/bin/activate
 # On Windows:
 venv\Scripts\activate
 
-# Install dependencies
+# Install basic dependencies
 pip install -r requirements.txt
+
+# For visual comparison (optional but recommended)
+pip install selenium Pillow webdriver-manager
 
 # Install in development mode
 pip install -e .

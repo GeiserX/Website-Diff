@@ -30,6 +30,13 @@ setup(
     install_requires=[
         "requests>=2.31.0",
     ],
+    extras_require={
+        "visual": [
+            "selenium>=4.15.0",
+            "Pillow>=10.0.0",
+            "webdriver-manager>=4.0.0",
+        ],
+    },
     entry_points={
         "console_scripts": [
             "website-diff=website_diff.cli:main",
