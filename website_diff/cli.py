@@ -8,6 +8,7 @@ from pathlib import Path
 from website_diff.fetcher import WebFetcher
 from website_diff.wayback_cleaner import WaybackCleaner
 from website_diff.diff_engine import DiffEngine
+from website_diff.visual_comparison import VisualComparison
 
 
 def format_output(changes: list, summary: dict, output_format: str = "text") -> str:
@@ -169,6 +170,47 @@ Examples:
         help="Verbose output"
     )
     
+    parser.add_argument(
+        "--visual",
+        action="store_true",
+        help="Enable visual comparison (screenshots)"
+    )
+    
+    parser.add_argument(
+        "--browsers",
+        nargs="+",
+        choices=["chrome", "firefox"],
+        default=["chrome"],
+        help="Browsers to use for visual comparison (default: chrome)"
+    )
+    
+    parser.add_argument(
+        "--screenshot-dir",
+        type=str,
+        default="./screenshots",
+        help="Directory to save screenshots (default: ./screenshots)"
+    )
+    
+    parser.add_argument(
+        "--viewport-width",
+        type=int,
+        default=1920,
+        help="Browser viewport width for screenshots (default: 1920)"
+    )
+    
+    parser.add_argument(
+        "--viewport-height",
+        type=int,
+        default=1080,
+        help="Browser viewport height for screenshots (default: 1080)"
+    )
+    
+    parser.add_argument(
+        "--no-headless",
+        action="store_true",
+        help="Run browser in non-headless mode (for debugging)"
+    )
+    
     args = parser.parse_args()
     
     # Fetch content
@@ -239,6 +281,55 @@ Examples:
             print(f"Output written to {args.output}", file=sys.stderr)
     else:
         print(output)
+    
+    # Visual comparison if requested
+    if args.visual:
+        if args.verbose:
+            print("\nStarting visual comparison...", file=sys.stderr)
+        
+        try:
+            visual = VisualComparison(
+                browser=args.browsers[0] if args.browsers else 'chrome',
+                headless=not args.no_headless,
+                viewport_width=args.viewport_width,
+                viewport_height=args.viewport_height
+            )
+            
+            visual_results = visual.compare_urls(
+                args.url1,
+                args.url2,
+                args.screenshot_dir,
+                browsers=args.browsers
+            )
+            
+            # Print visual comparison results
+            print("\n" + "=" * 80, file=sys.stderr)
+            print("VISUAL COMPARISON RESULTS", file=sys.stderr)
+            print("=" * 80, file=sys.stderr)
+            
+            for browser, result in visual_results.items():
+                if 'error' in result:
+                    print(f"\n{browser.upper()}: Error - {result['error']}", file=sys.stderr)
+                else:
+                    diff_ratio = result.get('difference_ratio', 0) * 100
+                    print(f"\n{browser.upper()}:", file=sys.stderr)
+                    print(f"  Difference: {diff_ratio:.2f}%", file=sys.stderr)
+                    print(f"  Different pixels: {result.get('different_pixels', 0):,}", file=sys.stderr)
+                    print(f"  Screenshot 1: {result.get('screenshot1', 'N/A')}", file=sys.stderr)
+                    print(f"  Screenshot 2: {result.get('screenshot2', 'N/A')}", file=sys.stderr)
+                    print(f"  Comparison: {result.get('comparison', 'N/A')}", file=sys.stderr)
+            
+            print("\n" + "=" * 80, file=sys.stderr)
+            print(f"Screenshots saved to: {args.screenshot_dir}", file=sys.stderr)
+            
+        except ImportError as e:
+            print(f"\nWarning: Visual comparison not available: {e}", file=sys.stderr)
+            print("Install required packages: pip install selenium Pillow webdriver-manager", file=sys.stderr)
+        except Exception as e:
+            print(f"\nError during visual comparison: {e}", file=sys.stderr)
+            if args.verbose:
+                import traceback
+                traceback.print_exc()
     
     # Exit code based on changes
     if summary['total_changes'] == 0:

@@ -8,6 +8,7 @@ A comprehensive Python tool for detecting meaningful differences between two web
 - **Wayback Machine Support**: Automatically detects and removes Wayback Machine banners, scripts, and URL rewrites
 - **Significance Scoring**: Categorizes changes as high, medium, or low significance
 - **Multiple Output Formats**: Text, JSON, and unified diff formats
+- **Visual Comparison**: Take screenshots in multiple browsers and generate side-by-side comparison images
 - **Developer-Focused**: Highlights changes that matter for migrations and development
 
 ## Installation
@@ -75,6 +76,32 @@ Unified diff format:
 ```bash
 website-diff url1 url2 --format unified
 ```
+
+### Visual Comparison
+
+Take screenshots and compare them visually:
+
+```bash
+# Enable visual comparison (screenshots)
+website-diff url1 url2 --visual
+
+# Compare in multiple browsers
+website-diff url1 url2 --visual --browsers chrome firefox
+
+# Custom screenshot directory
+website-diff url1 url2 --visual --screenshot-dir ./my-screenshots
+
+# Custom viewport size
+website-diff url1 url2 --visual --viewport-width 1280 --viewport-height 720
+
+# Run browser in visible mode (for debugging)
+website-diff url1 url2 --visual --no-headless
+```
+
+Visual comparison generates:
+- Screenshots of both pages in each browser
+- Side-by-side comparison images
+- Difference highlighting (red pixels show differences)
 
 ### Advanced Options
 
@@ -194,6 +221,11 @@ Structured JSON output for programmatic processing:
 
 - Python 3.8+
 - requests library
+- For visual comparison:
+  - selenium
+  - Pillow (PIL)
+  - webdriver-manager (optional, for automatic driver management)
+  - Chrome or Firefox browser installed
 
 ## License
 
