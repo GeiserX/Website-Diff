@@ -8,7 +8,14 @@ from pathlib import Path
 from website_diff.fetcher import WebFetcher
 from website_diff.wayback_cleaner import WaybackCleaner
 from website_diff.diff_engine import DiffEngine
-from website_diff.visual_comparison import VisualComparison
+from website_diff.link_traverser import LinkTraverser
+
+# Optional visual comparison import
+try:
+    from website_diff.visual_comparison import VisualComparison
+    VISUAL_COMPARISON_AVAILABLE = True
+except ImportError:
+    VISUAL_COMPARISON_AVAILABLE = False
 
 
 def format_output(changes: list, summary: dict, output_format: str = "text") -> str:
@@ -211,6 +218,26 @@ Examples:
         help="Run browser in non-headless mode (for debugging)"
     )
     
+    parser.add_argument(
+        "--traverse",
+        action="store_true",
+        help="Traverse all links and compare entire site"
+    )
+    
+    parser.add_argument(
+        "--max-depth",
+        type=int,
+        default=2,
+        help="Maximum depth for link traversal (default: 2)"
+    )
+    
+    parser.add_argument(
+        "--max-pages",
+        type=int,
+        default=50,
+        help="Maximum number of pages to compare (default: 50)"
+    )
+    
     args = parser.parse_args()
     
     # Fetch content
@@ -252,7 +279,42 @@ Examples:
                 print("Cleaning Wayback Machine artifacts from URL2...", file=sys.stderr)
             content2 = WaybackCleaner.clean_wayback_html(content2, args.url2)
     
-    # Compare
+    # Check if we should traverse links
+    if args.traverse:
+        if args.verbose:
+            print("Starting link traversal comparison...", file=sys.stderr)
+        
+        traverser = LinkTraverser(
+            args.url1,
+            args.url2,
+            max_depth=args.max_depth,
+            max_pages=args.max_pages
+        )
+        
+        results = traverser.traverse_and_compare()
+        report = traverser.generate_report()
+        
+        # Write report
+        if args.output:
+            output_path = Path(args.output)
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(output_path, 'w', encoding='utf-8') as f:
+                f.write(report)
+            if args.verbose:
+                print(f"Report written to {args.output}", file=sys.stderr)
+        else:
+            print(report)
+        
+        # Exit code based on results
+        high_diff_count = sum(1 for r in results if r.get('high_significance', 0) > 0)
+        if high_diff_count > 0:
+            sys.exit(2)
+        elif len([r for r in results if r.get('status') == 'compared']) > 0:
+            sys.exit(1)
+        else:
+            sys.exit(0)
+    
+    # Compare single pages
     if args.verbose:
         print("Comparing pages...", file=sys.stderr)
     
@@ -284,6 +346,11 @@ Examples:
     
     # Visual comparison if requested
     if args.visual:
+        if not VISUAL_COMPARISON_AVAILABLE:
+            print("\nError: Visual comparison requires additional dependencies.", file=sys.stderr)
+            print("Install with: pip install selenium Pillow webdriver-manager", file=sys.stderr)
+            sys.exit(1)
+        
         if args.verbose:
             print("\nStarting visual comparison...", file=sys.stderr)
         

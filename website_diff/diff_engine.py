@@ -104,6 +104,9 @@ class DiffEngine:
         """
         changes = []
         
+        # For very large files, use autojunk=True for better performance
+        use_autojunk = len(old_content) > 100000 or len(new_content) > 100000
+        
         # Normalize content
         old_normalized = self.normalize_content(old_content)
         new_normalized = self.normalize_content(new_content)
@@ -113,7 +116,7 @@ class DiffEngine:
             isjunk=None,
             a=old_normalized,
             b=new_normalized,
-            autojunk=False
+            autojunk=use_autojunk  # Use autojunk for large files
         )
         
         # Context window for changes
