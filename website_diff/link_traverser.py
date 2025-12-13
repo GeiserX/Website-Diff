@@ -38,24 +38,36 @@ class LinkTraverser:
         self.domain1 = parsed1.netloc.lower().lstrip("www.")
         self.domain2 = parsed2.netloc.lower().lstrip("www.")
         
-        # Track visited URLs
-        self.visited1: Set[str] = set()
-        self.visited2: Set[str] = set()
+        # Track visited URLs (normalized to avoid duplicates)
+        self.visited: Set[str] = set()  # Track normalized URL pairs
         
         # Results
         self.results: List[Dict] = []
     
-    def _normalize_url(self, url: str, base_url: str) -> str:
-        """Normalize URL for comparison."""
+    def _normalize_url(self, url: str, base_url: str = None) -> str:
+        """Normalize URL for comparison and deduplication."""
         # Handle relative URLs
         if not url.startswith(("http://", "https://")):
-            url = urljoin(base_url, url)
+            if base_url:
+                url = urljoin(base_url, url)
+            else:
+                return url  # Can't normalize without base
         
-        # Remove fragments
+        # Remove fragments and normalize
         parsed = urlparse(url)
-        normalized = f"{parsed.scheme}://{parsed.netloc}{parsed.path}"
+        
+        # Normalize path (remove trailing slashes except for root)
+        path = parsed.path.rstrip('/')
+        if not path:
+            path = '/'
+        
+        # Build normalized URL
+        normalized = f"{parsed.scheme}://{parsed.netloc.lower()}{path}"
+        
+        # Sort query parameters for consistent comparison
         if parsed.query:
-            normalized += f"?{parsed.query}"
+            params = sorted(parsed.query.split('&'))
+            normalized += f"?{'&'.join(params)}"
         
         return normalized
     
@@ -82,32 +94,40 @@ class LinkTraverser:
                     # Extract original URL from Wayback if needed
                     if WaybackCleaner.is_wayback_url(href) or '/web/' in href:
                         # Try to extract original URL from Wayback path
-                        original = WaybackCleaner.extract_timestamp(href)
-                        if original:
-                            # Pattern: /web/TIMESTAMP/ORIGINAL_URL
-                            match = re.search(r'/web/\d+[a-z]*/(https?://[^"\'<>)\s]+)', href)
+                        # Pattern: /web/TIMESTAMP/ORIGINAL_URL
+                        match = re.search(r'/web/\d+[a-z]*/(https?://[^"\'<>)\s]+)', href)
+                        if match:
+                            href = match.group(1)
+                        else:
+                            # Try relative wayback path
+                            match = re.search(r'/web/\d+[a-z]*/([^"\'<>)\s/]+)', href)
                             if match:
-                                href = match.group(1)
-                            else:
-                                # Try relative wayback path
-                                match = re.search(r'/web/\d+[a-z]*/([^"\'<>)\s/]+)', href)
-                                if match:
-                                    # This is a relative path, construct full URL
-                                    path_part = match.group(1)
-                                    if base_url and WaybackCleaner.is_wayback_url(base_url):
-                                        # Extract original domain from base_url
-                                        base_match = re.search(r'/web/\d+[a-z]*/(https?://[^/]+)', base_url)
-                                        if base_match:
-                                            original_base = base_match.group(1)
-                                            href = urljoin(original_base, path_part)
-                                        else:
-                                            continue
+                                # This is a relative path, construct full URL
+                                path_part = match.group(1)
+                                if base_url and WaybackCleaner.is_wayback_url(base_url):
+                                    # Extract original domain from base_url
+                                    base_match = re.search(r'/web/\d+[a-z]*/(https?://[^/]+)', base_url)
+                                    if base_match:
+                                        original_base = base_match.group(1)
+                                        href = urljoin(original_base, path_part)
                                     else:
                                         continue
                                 else:
                                     continue
+                            else:
+                                continue
                     
-                    normalized = self._normalize_url(href, base_url)
+                    # Skip invalid URLs (emails, malformed)
+                    if '@' in href and not href.startswith('mailto:'):
+                        continue
+                    if not href.startswith(('http://', 'https://')):
+                        normalized = self._normalize_url(href, base_url)
+                    else:
+                        normalized = self._normalize_url(href)
+                    
+                    # Skip if normalization failed or resulted in invalid URL
+                    if not normalized or not normalized.startswith(('http://', 'https://')):
+                        continue
                     
                     # For Wayback URLs, extract the original domain
                     if WaybackCleaner.is_wayback_url(base_url):
@@ -213,18 +233,25 @@ class LinkTraverser:
         url1 = self.base_url1
         url2 = self.base_url2
         
-        # Queue for BFS traversal
-        queue: List[Tuple[str, str, int]] = [(url1, url2, 0)]  # (url1, url2, depth)
+        # Normalize URLs for deduplication
+        normalized_url1 = self._normalize_url(url1)
+        normalized_url2 = self._normalize_url(url2)
+        visit_key = f"{normalized_url1}|||{normalized_url2}"
+        
+        # Queue for BFS traversal: (url1, url2, depth, normalized_key)
+        queue: List[Tuple[str, str, int, str]] = [(url1, url2, 0, visit_key)]
         
         while queue and len(self.results) < self.max_pages:
-            url1, url2, depth = queue.pop(0)
+            url1, url2, depth, visit_key = queue.pop(0)
             
             # Skip if already visited or too deep
-            if url1 in self.visited1 or depth > self.max_depth:
+            if visit_key in self.visited or depth > self.max_depth:
+                if visit_key in self.visited:
+                    print(f"Skipping already visited: {url1}")
                 continue
             
-            self.visited1.add(url1)
-            self.visited2.add(url2)
+            # Mark as visited
+            self.visited.add(visit_key)
             
             print(f"Comparing (depth {depth}): {url1} <-> {url2}")
             
@@ -235,11 +262,57 @@ class LinkTraverser:
             # Add links to queue if not too deep
             if depth < self.max_depth and result.get('status') == 'compared':
                 links1 = result.get('links1', [])
-                for link in links1[:10]:  # Limit links per page
-                    if link not in self.visited1:
-                        matching_link = self._get_matching_url(link)
+                links_added = 0
+                
+                # Deduplicate links before processing
+                seen_links = set()
+                unique_links = []
+                for link in links1:
+                    # Normalize to check for duplicates
+                    try:
+                        if WaybackCleaner.is_wayback_url(link) or '/web/' in link:
+                            # Extract original URL
+                            match = re.search(r'/web/\d+[a-z]*/(https?://[^"\'<>)\s]+)', link)
+                            if match:
+                                link = match.group(1)
+                        
+                        normalized_check = self._normalize_url(link, url1)
+                        if normalized_check and normalized_check not in seen_links:
+                            seen_links.add(normalized_check)
+                            unique_links.append(link)
+                    except:
+                        continue
+                
+                for link in unique_links:
+                    if links_added >= 10:  # Limit links per page
+                        break
+                    
+                    try:
+                        # Normalize the link
+                        normalized_link1 = self._normalize_url(link, url1)
+                        if not normalized_link1 or not normalized_link1.startswith(('http://', 'https://')):
+                            continue
+                        
+                        matching_link = self._get_matching_url(normalized_link1)
+                        
                         if matching_link:
-                            queue.append((link, matching_link, depth + 1))
+                            normalized_link2 = self._normalize_url(matching_link, url2)
+                            if not normalized_link2:
+                                continue
+                            
+                            link_visit_key = f"{normalized_link1}|||{normalized_link2}"
+                            
+                            # Only add if not already visited
+                            if link_visit_key not in self.visited:
+                                queue.append((normalized_link1, normalized_link2, depth + 1, link_visit_key))
+                                links_added += 1
+                            else:
+                                if depth == 0:  # Only print for first level to reduce noise
+                                    print(f"  Skipping duplicate link: {normalized_link1}")
+                    except Exception as e:
+                        if depth == 0:
+                            print(f"  Error processing link {link}: {e}")
+                        continue
         
         return self.results
     
