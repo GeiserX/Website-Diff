@@ -103,8 +103,11 @@ Take screenshots and compare them visually:
 # Enable visual comparison (screenshots)
 website-diff url1 url2 --visual
 
-# Compare in multiple browsers
-website-diff url1 url2 --visual --browsers chrome firefox
+# Auto-detect and use all available browsers (default)
+website-diff url1 url2 --visual --markdown
+
+# Compare in specific browsers
+website-diff url1 url2 --visual --browsers chrome firefox edge
 
 # Generate markdown report with images
 website-diff url1 url2 --visual --markdown
