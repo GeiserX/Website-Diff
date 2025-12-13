@@ -53,10 +53,33 @@ class WebFetcher:
         
         # Prevent localhost/internal network access (basic SSRF protection)
         # Note: This is a basic check; for production, consider more robust validation
+        # Localhost is allowed for development/testing but should be restricted in production
         netloc_lower = parsed.netloc.lower()
-        if netloc_lower in ("localhost", "127.0.0.1", "0.0.0.0") or netloc_lower.startswith("127.") or netloc_lower.startswith("192.168.") or netloc_lower.startswith("10."):
+        # Check for private/internal IP ranges (RFC 1918)
+        # Note: We allow localhost for development but this could be made configurable
+        if netloc_lower in ("localhost", "127.0.0.1", "0.0.0.0", "::1") or \
+           netloc_lower.startswith("127.") or \
+           netloc_lower.startswith("192.168.") or \
+           netloc_lower.startswith("10.") or \
+           netloc_lower.startswith("172.16.") or \
+           netloc_lower.startswith("172.17.") or \
+           netloc_lower.startswith("172.18.") or \
+           netloc_lower.startswith("172.19.") or \
+           netloc_lower.startswith("172.20.") or \
+           netloc_lower.startswith("172.21.") or \
+           netloc_lower.startswith("172.22.") or \
+           netloc_lower.startswith("172.23.") or \
+           netloc_lower.startswith("172.24.") or \
+           netloc_lower.startswith("172.25.") or \
+           netloc_lower.startswith("172.26.") or \
+           netloc_lower.startswith("172.27.") or \
+           netloc_lower.startswith("172.28.") or \
+           netloc_lower.startswith("172.29.") or \
+           netloc_lower.startswith("172.30.") or \
+           netloc_lower.startswith("172.31."):
             # Allow localhost for development/testing, but log it
-            pass  # Keep for now as user may need to test localhost
+            # In production, consider adding an environment variable to disable this
+            pass
         
         metadata = {
             "url": url,
