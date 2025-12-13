@@ -286,3 +286,4 @@ class MarkdownReportGenerator:
             f.write(report)
         
         return str(report_path)
+

@@ -195,8 +195,8 @@ Examples:
     parser.add_argument(
         "--screenshot-dir",
         type=str,
-        default="./screenshots",
-        help="Directory to save screenshots (default: ./screenshots)"
+        default=None,  # Will be set to {report_dir}/screenshots if not specified
+        help="Directory to save screenshots (default: {report-dir}/screenshots)"
     )
     
     parser.add_argument(
@@ -371,6 +371,11 @@ Examples:
     # Visual comparison results (will be populated if --visual is used)
     visual_results = None
     
+    # Determine screenshot directory (use report_dir/screenshots if not specified)
+    screenshot_dir = args.screenshot_dir
+    if screenshot_dir is None:
+        screenshot_dir = str(Path(args.report_dir) / "screenshots")
+    
     # Visual comparison if requested
     if args.visual:
         if not VISUAL_COMPARISON_AVAILABLE:
@@ -397,7 +402,7 @@ Examples:
             visual_results = visual.compare_urls(
                 args.url1,
                 args.url2,
-                args.screenshot_dir,
+                screenshot_dir,
                 browsers=browsers_to_use
             )
             
@@ -419,7 +424,7 @@ Examples:
                     print(f"  Comparison: {result.get('comparison', 'N/A')}", file=sys.stderr)
             
             print("\n" + "=" * 80, file=sys.stderr)
-            print(f"Screenshots saved to: {args.screenshot_dir}", file=sys.stderr)
+            print(f"Screenshots saved to: {screenshot_dir}", file=sys.stderr)
             
         except ImportError as e:
             print(f"\nWarning: Visual comparison not available: {e}", file=sys.stderr)

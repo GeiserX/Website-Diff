@@ -363,3 +363,4 @@ class LinkTraverser:
                 lines.append(f"   Error: {result.get('error', 'Unknown error')}")
         
         return "\n".join(lines)
+
