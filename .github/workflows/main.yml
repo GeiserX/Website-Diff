@@ -83,7 +83,9 @@ jobs:
       id: meta
       uses: docker/metadata-action@v5
       with:
-        images: ${{ env.IMAGE_NAME }}
+        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+        flavor: |
+          suffix=-${{ github.ref_name }}
         tags: |
           type=ref,event=branch
           type=ref,event=pr
@@ -191,7 +193,7 @@ jobs:
           
           ### Docker
           ```bash
-          docker pull ${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.version }}
+          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.version }}
           ```
           
           ### Changes
