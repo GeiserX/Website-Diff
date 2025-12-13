@@ -238,9 +238,50 @@ This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
 
 See the [LICENSE](LICENSE) file for details.
 
+## Testing
+
+Run tests locally:
+
+```bash
+# Install test dependencies
+pip install -r requirements-dev.txt
+
+# Run tests
+pytest tests/ -v
+
+# Run with coverage
+pytest tests/ -v --cov=website_diff --cov-report=html
+```
+
 ## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
+
+### Development Setup
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new features
+5. Ensure all tests pass: `pytest tests/ -v`
+6. Submit a Pull Request
+
+## CI/CD
+
+The project uses GitHub Actions for:
+- **CI**: Runs tests on push/PR across Python 3.8-3.11
+- **Release**: Automatically creates GitHub releases when version tags are pushed
+
+To create a release:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+This will:
+1. Run all tests
+2. Build the package
+3. Create a GitHub release with distribution files
 
 ## Acknowledgments
 
