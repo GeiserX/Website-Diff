@@ -4,7 +4,6 @@ import re
 from typing import List, Dict, Tuple, Optional
 from difflib import SequenceMatcher, unified_diff
 from html.parser import HTMLParser
-from collections import defaultdict
 
 
 class HTMLStructureParser(HTMLParser):
