@@ -187,9 +187,9 @@ Examples:
     parser.add_argument(
         "--browsers",
         nargs="+",
-        choices=["chrome", "firefox"],
-        default=["chrome"],
-        help="Browsers to use for visual comparison (default: chrome)"
+        choices=["chrome", "chromium", "firefox", "opera", "edge", "auto"],
+        default=["auto"],
+        help="Browsers to use for visual comparison (default: auto-detect available)"
     )
     
     parser.add_argument(
@@ -382,8 +382,13 @@ Examples:
             print("\nStarting visual comparison...", file=sys.stderr)
         
         try:
+            # Handle auto-detect
+            browsers_to_use = args.browsers
+            if browsers_to_use == ["auto"] or (len(browsers_to_use) == 1 and browsers_to_use[0] == "auto"):
+                browsers_to_use = None  # Will auto-detect
+            
             visual = VisualComparison(
-                browser=args.browsers[0] if args.browsers else 'chrome',
+                browser='chrome',  # Default, will be overridden in compare_urls
                 headless=not args.no_headless,
                 viewport_width=args.viewport_width,
                 viewport_height=args.viewport_height
@@ -393,7 +398,7 @@ Examples:
                 args.url1,
                 args.url2,
                 args.screenshot_dir,
-                browsers=args.browsers
+                browsers=browsers_to_use
             )
             
             # Print visual comparison results

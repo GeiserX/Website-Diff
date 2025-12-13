@@ -31,9 +31,98 @@ except ImportError:
 class VisualComparison:
     """Take screenshots and compare web pages visually."""
     
-    SUPPORTED_BROWSERS = ['chrome', 'firefox']
+    SUPPORTED_BROWSERS = ['chrome', 'chromium', 'firefox', 'opera', 'edge']
     DEFAULT_VIEWPORT_WIDTH = 1920
     DEFAULT_VIEWPORT_HEIGHT = 1080
+    
+    @staticmethod
+    def detect_available_browsers() -> List[str]:
+        """Detect available browsers on the system.
+        
+        Returns:
+            List of available browser names
+        """
+        available = []
+        
+        if not SELENIUM_AVAILABLE:
+            return available
+        
+        # Check Chrome/Chromium
+        try:
+            from selenium.webdriver.chrome.options import Options as ChromeOptions
+            options = ChromeOptions()
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            driver = webdriver.Chrome(options=options)
+            driver.quit()
+            available.append('chrome')
+        except:
+            pass
+        
+        # Check Chromium (separate binary)
+        try:
+            from selenium.webdriver.chrome.options import Options as ChromeOptions
+            options = ChromeOptions()
+            options.binary_location = '/usr/bin/chromium'  # Common location
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            driver = webdriver.Chrome(options=options)
+            driver.quit()
+            available.append('chromium')
+        except:
+            pass
+        
+        # Check Firefox
+        try:
+            from selenium.webdriver.firefox.options import Options as FirefoxOptions
+            options = FirefoxOptions()
+            options.add_argument('--headless')
+            driver = webdriver.Firefox(options=options)
+            driver.quit()
+            available.append('firefox')
+        except:
+            pass
+        
+        # Check Opera (uses Chrome driver)
+        try:
+            from selenium.webdriver.chrome.options import Options as ChromeOptions
+            options = ChromeOptions()
+            options.binary_location = '/usr/bin/opera'  # Common location
+            options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            driver = webdriver.Chrome(options=options)
+            driver.quit()
+            available.append('opera')
+        except:
+            pass
+        
+        # Check Edge (uses Chrome driver on Mac, EdgeDriver on Windows)
+        try:
+            from selenium.webdriver.edge.options import Options as EdgeOptions
+            options = EdgeOptions()
+            options.add_argument('--headless')
+            driver = webdriver.Edge(options=options)
+            driver.quit()
+            available.append('edge')
+        except:
+            # Try Chrome-based Edge
+            try:
+                from selenium.webdriver.chrome.options import Options as ChromeOptions
+                options = ChromeOptions()
+                options.binary_location = '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge'
+                options.add_argument('--headless')
+                options.add_argument('--no-sandbox')
+                options.add_argument('--disable-dev-shm-usage')
+                driver = webdriver.Chrome(options=options)
+                driver.quit()
+                available.append('edge')
+            except:
+                pass
+        
+        return available if available else ['chrome']  # Fallback to chrome
     
     def __init__(self, browser: str = 'chrome', headless: bool = True, 
                  viewport_width: int = None, viewport_height: int = None,
@@ -63,9 +152,68 @@ class VisualComparison:
         self.wait_time = wait_time
         self.driver = None
     
+    def _remove_wayback_banner(self):
+        """Remove Wayback Machine banner using JavaScript before screenshot."""
+        try:
+            # Remove Wayback Machine banner elements
+            remove_script = """
+            (function() {
+                // Remove by ID
+                var ids = ['wm-ipp', 'wm-bipp', 'wm-toolbar', 'wm-ipp-base', 'wm-ipp-inside'];
+                ids.forEach(function(id) {
+                    var el = document.getElementById(id);
+                    if (el) el.remove();
+                });
+                
+                // Remove by class
+                var classes = ['wm-ipp', 'wm-bipp', 'wm-toolbar'];
+                classes.forEach(function(className) {
+                    var els = document.getElementsByClassName(className);
+                    while(els.length > 0) {
+                        els[0].remove();
+                    }
+                });
+                
+                // Remove iframes from archive.org
+                var iframes = document.getElementsByTagName('iframe');
+                for (var i = iframes.length - 1; i >= 0; i--) {
+                    if (iframes[i].src && iframes[i].src.indexOf('archive.org') !== -1) {
+                        iframes[i].remove();
+                    }
+                }
+                
+                // Remove scripts from archive.org
+                var scripts = document.getElementsByTagName('script');
+                for (var i = scripts.length - 1; i >= 0; i--) {
+                    if (scripts[i].src && scripts[i].src.indexOf('archive.org') !== -1) {
+                        scripts[i].remove();
+                    }
+                }
+                
+                // Hide elements with wayback-specific styles
+                var style = document.createElement('style');
+                style.textContent = `
+                    #wm-ipp, #wm-bipp, #wm-toolbar, #wm-ipp-base, 
+                    .wm-ipp, .wm-bipp, .wm-toolbar,
+                    iframe[src*="archive.org"] {
+                        display: none !important;
+                        visibility: hidden !important;
+                        height: 0 !important;
+                        width: 0 !important;
+                        opacity: 0 !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            })();
+            """
+            self.driver.execute_script(remove_script)
+            time.sleep(0.5)  # Wait for removal to take effect
+        except Exception as e:
+            print(f"Warning: Could not remove Wayback banner: {e}")
+    
     def _create_driver(self) -> webdriver.Remote:
         """Create and configure WebDriver."""
-        if self.browser_name == 'chrome':
+        if self.browser_name in ['chrome', 'chromium']:
             options = ChromeOptions()
             if self.headless:
                 options.add_argument('--headless')
@@ -74,6 +222,14 @@ class VisualComparison:
             options.add_argument(f'--window-size={self.viewport_width},{self.viewport_height}')
             options.add_argument('--disable-gpu')
             options.add_argument('--disable-extensions')
+            
+            # Set binary location for chromium if needed
+            if self.browser_name == 'chromium':
+                chromium_paths = ['/usr/bin/chromium', '/usr/bin/chromium-browser', '/Applications/Chromium.app/Contents/MacOS/Chromium']
+                for path in chromium_paths:
+                    if os.path.exists(path):
+                        options.binary_location = path
+                        break
             
             # Try to use webdriver-manager if available
             if WEBDRIVER_MANAGER_AVAILABLE:
@@ -105,6 +261,81 @@ class VisualComparison:
                 driver = webdriver.Firefox(options=options)
             
             driver.set_window_size(self.viewport_width, self.viewport_height)
+        
+        elif self.browser_name == 'opera':
+            # Opera uses Chrome driver
+            options = ChromeOptions()
+            if self.headless:
+                options.add_argument('--headless')
+            options.add_argument('--no-sandbox')
+            options.add_argument('--disable-dev-shm-usage')
+            options.add_argument(f'--window-size={self.viewport_width},{self.viewport_height}')
+            
+            # Try common Opera binary locations
+            opera_paths = [
+                '/usr/bin/opera',
+                '/Applications/Opera.app/Contents/MacOS/Opera',
+                'C:\\Program Files\\Opera\\opera.exe'
+            ]
+            for path in opera_paths:
+                if os.path.exists(path):
+                    options.binary_location = path
+                    break
+            
+            if WEBDRIVER_MANAGER_AVAILABLE:
+                try:
+                    service = ChromeService(ChromeDriverManager().install())
+                    driver = webdriver.Chrome(service=service, options=options)
+                except Exception:
+                    driver = webdriver.Chrome(options=options)
+            else:
+                driver = webdriver.Chrome(options=options)
+        
+        elif self.browser_name == 'edge':
+            # Try Edge-specific driver first
+            try:
+                from selenium.webdriver.edge.options import Options as EdgeOptions
+                from selenium.webdriver.edge.service import Service as EdgeService
+                options = EdgeOptions()
+                if self.headless:
+                    options.add_argument('--headless')
+                options.add_argument(f'--window-size={self.viewport_width},{self.viewport_height}')
+                
+                if WEBDRIVER_MANAGER_AVAILABLE:
+                    try:
+                        from webdriver_manager.microsoft import EdgeChromiumDriverManager
+                        service = EdgeService(EdgeChromiumDriverManager().install())
+                        driver = webdriver.Edge(service=service, options=options)
+                    except:
+                        driver = webdriver.Edge(options=options)
+                else:
+                    driver = webdriver.Edge(options=options)
+            except:
+                # Fallback to Chrome-based Edge
+                options = ChromeOptions()
+                if self.headless:
+                    options.add_argument('--headless')
+                options.add_argument('--no-sandbox')
+                options.add_argument('--disable-dev-shm-usage')
+                options.add_argument(f'--window-size={self.viewport_width},{self.viewport_height}')
+                
+                edge_paths = [
+                    '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+                    'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe'
+                ]
+                for path in edge_paths:
+                    if os.path.exists(path):
+                        options.binary_location = path
+                        break
+                
+                if WEBDRIVER_MANAGER_AVAILABLE:
+                    try:
+                        service = ChromeService(ChromeDriverManager().install())
+                        driver = webdriver.Chrome(service=service, options=options)
+                    except:
+                        driver = webdriver.Chrome(options=options)
+                else:
+                    driver = webdriver.Chrome(options=options)
         
         return driver
     
@@ -138,6 +369,12 @@ class VisualComparison:
             except TimeoutException:
                 pass  # Continue anyway
             
+            # Remove Wayback Machine banner if present
+            from website_diff.wayback_cleaner import WaybackCleaner
+            if WaybackCleaner.is_wayback_url(url):
+                self._remove_wayback_banner()
+                time.sleep(0.5)  # Wait for banner removal
+            
             if full_page:
                 # Full page screenshot using JavaScript
                 screenshot = self._take_full_page_screenshot()
@@ -158,6 +395,12 @@ class VisualComparison:
     
     def _take_full_page_screenshot(self) -> bytes:
         """Take full page screenshot by scrolling and stitching."""
+        # Remove Wayback banner before measuring (if present)
+        from website_diff.wayback_cleaner import WaybackCleaner
+        current_url = self.driver.current_url
+        if WaybackCleaner.is_wayback_url(current_url):
+            self._remove_wayback_banner()
+        
         # Get page dimensions
         total_width = self.driver.execute_script("return document.body.scrollWidth")
         total_height = self.driver.execute_script("return document.body.scrollHeight")
@@ -176,6 +419,28 @@ class VisualComparison:
                 # Scroll to position
                 self.driver.execute_script(f"window.scrollTo({scroll_x}, {scroll_y});")
                 time.sleep(0.2)  # Small delay for scroll
+                
+                # Ensure banner stays removed during scrolling
+                if WaybackCleaner.is_wayback_url(current_url):
+                    self.driver.execute_script("""
+                        var style = document.getElementById('wayback-hide-style');
+                        if (!style) {
+                            style = document.createElement('style');
+                            style.id = 'wayback-hide-style';
+                            style.textContent = `
+                                #wm-ipp, #wm-bipp, #wm-toolbar, #wm-ipp-base, 
+                                .wm-ipp, .wm-bipp, .wm-toolbar,
+                                iframe[src*="archive.org"] {
+                                    display: none !important;
+                                    visibility: hidden !important;
+                                    height: 0 !important;
+                                    width: 0 !important;
+                                    opacity: 0 !important;
+                                }
+                            `;
+                            document.head.appendChild(style);
+                        }
+                    """)
                 
                 # Capture viewport
                 viewport_screenshot = self.driver.get_screenshot_as_png()
@@ -245,27 +510,60 @@ class VisualComparison:
         if img2.mode != 'RGB':
             img2 = img2.convert('RGB')
         
-        # Calculate difference
-        diff_img = Image.new('RGB', img1.size)
-        diff_pixels = 0
-        total_pixels = img1.width * img1.height
-        
-        for x in range(img1.width):
-            for y in range(img1.height):
-                pixel1 = img1.getpixel((x, y))
-                pixel2 = img2.getpixel((x, y))
-                
-                # Calculate pixel difference
-                diff = sum(abs(p1 - p2) for p1, p2 in zip(pixel1, pixel2)) / (3 * 255)
-                
-                if diff > threshold:
-                    # Highlight difference in red
-                    diff_img.putpixel((x, y), (255, 0, 0))
-                    diff_pixels += 1
-                else:
-                    # Use average of both pixels
-                    avg = tuple((p1 + p2) // 2 for p1, p2 in zip(pixel1, pixel2))
-                    diff_img.putpixel((x, y), avg)
+        # Calculate difference using numpy for performance (if available)
+        try:
+            import numpy as np
+            # Convert to numpy arrays for faster processing
+            arr1 = np.array(img1)
+            arr2 = np.array(img2)
+            
+            # Calculate absolute difference
+            diff_arr = np.abs(arr1.astype(np.int16) - arr2.astype(np.int16))
+            diff_sum = np.sum(diff_arr, axis=2)  # Sum across RGB channels
+            diff_normalized = diff_sum / (3 * 255)  # Normalize to 0-1
+            
+            # Create diff image
+            diff_mask = diff_normalized > threshold
+            diff_pixels = np.sum(diff_mask)
+            total_pixels = img1.width * img1.height
+            
+            # Create diff image
+            diff_img_arr = np.zeros_like(arr1)
+            # Set different pixels to red
+            diff_img_arr[diff_mask] = [255, 0, 0]
+            # Set similar pixels to average
+            similar_mask = ~diff_mask
+            diff_img_arr[similar_mask] = (arr1[similar_mask] + arr2[similar_mask]) // 2
+            
+            diff_img = Image.fromarray(diff_img_arr.astype(np.uint8))
+            
+        except ImportError:
+            # Fallback to pixel-by-pixel (slower but works without numpy)
+            diff_img = Image.new('RGB', img1.size)
+            diff_pixels = 0
+            total_pixels = img1.width * img1.height
+            
+            # Process in chunks for better performance
+            pixels1 = img1.load()
+            pixels2 = img2.load()
+            diff_pixels_data = diff_img.load()
+            
+            for x in range(img1.width):
+                for y in range(img1.height):
+                    pixel1 = pixels1[x, y]
+                    pixel2 = pixels2[x, y]
+                    
+                    # Calculate pixel difference
+                    diff = sum(abs(p1 - p2) for p1, p2 in zip(pixel1, pixel2)) / (3 * 255)
+                    
+                    if diff > threshold:
+                        # Highlight difference in red
+                        diff_pixels_data[x, y] = (255, 0, 0)
+                        diff_pixels += 1
+                    else:
+                        # Use average of both pixels
+                        avg = tuple((p1 + p2) // 2 for p1, p2 in zip(pixel1, pixel2))
+                        diff_pixels_data[x, y] = avg
         
         difference_ratio = diff_pixels / total_pixels
         
@@ -325,13 +623,17 @@ class VisualComparison:
             url1: First URL
             url2: Second URL
             output_dir: Directory to save screenshots and comparisons
-            browsers: List of browsers to test (default: ['chrome'])
+            browsers: List of browsers to test (default: auto-detect available)
             
         Returns:
             Dictionary with comparison results for each browser
         """
         if browsers is None:
-            browsers = ['chrome']
+            # Auto-detect available browsers
+            browsers = self.detect_available_browsers()
+            if not browsers:
+                browsers = ['chrome']  # Fallback
+            print(f"Detected available browsers: {', '.join(browsers)}")
         
         results = {}
         output_path = Path(output_dir)
@@ -339,6 +641,7 @@ class VisualComparison:
         
         for browser_name in browsers:
             if browser_name not in self.SUPPORTED_BROWSERS:
+                print(f"Warning: Browser '{browser_name}' not supported, skipping...")
                 continue
             
             # Create new instance for each browser
