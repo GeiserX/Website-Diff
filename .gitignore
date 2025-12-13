@@ -44,7 +44,24 @@ Thumbs.db
 htmlcov/
 .tox/
 
-# Output files
+# Generated reports and outputs
+reports/
+*.md
+!README.md
 *.diff
 *.txt
 !requirements.txt
+!requirements-dev.txt
+
+# Screenshots and visual comparison outputs
+screenshots/
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
+
+# Temporary files
+*.tmp
+*.log
+/tmp/

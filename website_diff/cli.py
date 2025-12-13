@@ -9,6 +9,7 @@ from website_diff.fetcher import WebFetcher
 from website_diff.wayback_cleaner import WaybackCleaner
 from website_diff.diff_engine import DiffEngine
 from website_diff.link_traverser import LinkTraverser
+from website_diff.report_generator import MarkdownReportGenerator
 
 # Optional visual comparison import
 try:
@@ -238,6 +239,19 @@ Examples:
         help="Maximum number of pages to compare (default: 50)"
     )
     
+    parser.add_argument(
+        "--report-dir",
+        type=str,
+        default="./reports",
+        help="Directory to save markdown reports (default: ./reports)"
+    )
+    
+    parser.add_argument(
+        "--markdown",
+        action="store_true",
+        help="Generate markdown report in addition to text output"
+    )
+    
     args = parser.parse_args()
     
     # Fetch content
@@ -280,6 +294,7 @@ Examples:
             content2 = WaybackCleaner.clean_wayback_html(content2, args.url2)
     
     # Check if we should traverse links
+    traversal_results = None
     if args.traverse:
         if args.verbose:
             print("Starting link traversal comparison...", file=sys.stderr)
@@ -291,25 +306,45 @@ Examples:
             max_pages=args.max_pages
         )
         
-        results = traverser.traverse_and_compare()
+        traversal_results = traverser.traverse_and_compare()
         report = traverser.generate_report()
         
-        # Write report
+        # Generate markdown report for traversal if requested
+        markdown_report_path = None
+        if args.markdown or args.visual:
+            report_gen = MarkdownReportGenerator(output_dir=args.report_dir)
+            markdown_report = report_gen.generate_comparison_report(
+                args.url1,
+                args.url2,
+                [],  # Changes from individual pages not aggregated
+                {'total_changes': 0},  # Summary from traversal
+                visual_results=None,
+                traversal_results=traversal_results
+            )
+            markdown_report_path = report_gen.save_report(markdown_report)
+            if args.verbose:
+                print(f"Markdown report saved to: {markdown_report_path}", file=sys.stderr)
+        
+        # Print markdown report location
+        if markdown_report_path:
+            print(f"\n📄 Markdown report: {markdown_report_path}", file=sys.stderr)
+        
+        # Write text report
         if args.output:
             output_path = Path(args.output)
             output_path.parent.mkdir(parents=True, exist_ok=True)
             with open(output_path, 'w', encoding='utf-8') as f:
                 f.write(report)
             if args.verbose:
-                print(f"Report written to {args.output}", file=sys.stderr)
+                print(f"Text report written to {args.output}", file=sys.stderr)
         else:
             print(report)
         
         # Exit code based on results
-        high_diff_count = sum(1 for r in results if r.get('high_significance', 0) > 0)
+        high_diff_count = sum(1 for r in traversal_results if r.get('high_significance', 0) > 0)
         if high_diff_count > 0:
             sys.exit(2)
-        elif len([r for r in results if r.get('status') == 'compared']) > 0:
+        elif len([r for r in traversal_results if r.get('status') == 'compared']) > 0:
             sys.exit(1)
         else:
             sys.exit(0)
@@ -333,16 +368,8 @@ Examples:
     else:
         output = format_output(changes, summary, args.format)
     
-    # Write output
-    if args.output:
-        output_path = Path(args.output)
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(output)
-        if args.verbose:
-            print(f"Output written to {args.output}", file=sys.stderr)
-    else:
-        print(output)
+    # Visual comparison results (will be populated if --visual is used)
+    visual_results = None
     
     # Visual comparison if requested
     if args.visual:
@@ -397,6 +424,41 @@ Examples:
             if args.verbose:
                 import traceback
                 traceback.print_exc()
+    
+    # Generate markdown report if requested
+    markdown_report_path = None
+    if args.markdown or args.visual:
+        if args.verbose:
+            print("\nGenerating markdown report...", file=sys.stderr)
+        
+        report_gen = MarkdownReportGenerator(output_dir=args.report_dir)
+        markdown_report = report_gen.generate_comparison_report(
+            args.url1,
+            args.url2,
+            changes,
+            summary,
+            visual_results=visual_results,
+            traversal_results=None  # Will be set if traverse is used
+        )
+        
+        markdown_report_path = report_gen.save_report(markdown_report)
+        if args.verbose:
+            print(f"Markdown report saved to: {markdown_report_path}", file=sys.stderr)
+    
+    # Write text output
+    if args.output:
+        output_path = Path(args.output)
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(output_path, 'w', encoding='utf-8') as f:
+            f.write(output)
+        if args.verbose:
+            print(f"Text output written to {args.output}", file=sys.stderr)
+    else:
+        print(output)
+    
+    # Print markdown report location
+    if markdown_report_path:
+        print(f"\n📄 Markdown report: {markdown_report_path}", file=sys.stderr)
     
     # Exit code based on changes
     if summary['total_changes'] == 0:
