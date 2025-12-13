@@ -99,11 +99,13 @@ class WaybackCleaner:
     @staticmethod
     def remove_wayback_footer(content: bytes) -> bytes:
         """Remove Wayback Machine footer (archival comments at the end)."""
-        # Find the footer comment
+        # Find the footer comment - look for FILE ARCHIVED ON pattern
         footer_patterns = [
             b'</html>\n<!--\n     FILE ARCHIVED ON ',
             b'</html>\r\n<!--\n     FILE ARCHIVED ON ',
             b'</html><!--\n     FILE ARCHIVED ON ',
+            b'</html>\n<!-- FILE ARCHIVED ON',
+            b'</html><!-- FILE ARCHIVED ON',
         ]
         
         for pattern in footer_patterns:
@@ -114,14 +116,26 @@ class WaybackCleaner:
                 if html_end >= 0:
                     return content[:html_end + len(b'</html>')] + b'\n'
         
-        # Fallback: try to find just the comment
-        comment_start = content.rfind(b'<!--\n     FILE ARCHIVED ON ')
-        if comment_start >= 0:
-            html_end = content.rfind(b'</html>', 0, comment_start)
-            if html_end >= 0:
-                return content[:html_end + len(b'</html>')] + b'\n'
+        # Fallback: try to find just the comment pattern
+        comment_patterns = [
+            b'<!--\n     FILE ARCHIVED ON ',
+            b'<!-- FILE ARCHIVED ON',
+        ]
+        for pattern in comment_patterns:
+            comment_start = content.rfind(pattern)
+            if comment_start >= 0:
+                html_end = content.rfind(b'</html>', 0, comment_start)
+                if html_end >= 0:
+                    # Remove everything after </html> including the comment
+                    return content[:html_end + len(b'</html>')] + b'\n'
         
-        return content
+        # Last resort: remove any comment containing FILE ARCHIVED ON
+        # Find all occurrences and remove them
+        import re
+        content_str = content.decode('utf-8', errors='ignore')
+        # Remove HTML comments containing FILE ARCHIVED ON
+        content_str = re.sub(r'<!--\s*FILE ARCHIVED ON[^>]*-->', '', content_str, flags=re.IGNORECASE | re.DOTALL)
+        return content_str.encode('utf-8', errors='ignore')
 
     @staticmethod
     def remove_wayback_urls(content: bytes, timestamp: Optional[str] = None) -> bytes:

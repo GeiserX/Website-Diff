@@ -85,9 +85,9 @@ class TestWaybackCleaner:
         
         cleaned = WaybackCleaner.clean_wayback_html(content, "https://web.archive.org/web/20230101/https://example.com/")
         # Check that wayback artifacts are removed
-        assert b'archive.org' not in cleaned or b'archive.org/includes' not in cleaned
+        assert b'archive.org/includes' not in cleaned
         assert b'web.archive.org' not in cleaned
         assert b'https://example.com/' in cleaned
         # The cleaner should remove the footer comment
         cleaned_str = cleaned.decode('utf-8', errors='ignore')
-        assert 'FILE ARCHIVED ON' not in cleaned_str or cleaned_str.count('FILE ARCHIVED ON') == 0
+        assert 'FILE ARCHIVED ON' not in cleaned_str
