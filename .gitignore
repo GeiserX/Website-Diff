@@ -48,6 +48,8 @@ htmlcov/
 reports/
 *.md
 !README.md
+!SECURITY.md
+!CHANGELOG.md
 *.diff
 *.txt
 !requirements.txt
