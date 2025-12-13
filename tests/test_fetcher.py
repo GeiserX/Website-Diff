@@ -38,6 +38,7 @@ class TestWebFetcher:
         """Test 404 response."""
         mock_response = Mock()
         mock_response.status_code = 404
+        mock_response.headers = {}
         mock_get.return_value = mock_response
         
         fetcher = WebFetcher()
