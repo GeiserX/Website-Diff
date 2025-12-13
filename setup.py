@@ -30,12 +30,15 @@ setup(
     python_requires=">=3.8",
     install_requires=[
         "requests>=2.31.0",
+        "beautifulsoup4>=4.12.0",
+        "lxml>=4.9.0",
     ],
     extras_require={
         "visual": [
             "selenium>=4.15.0",
             "Pillow>=10.0.0",
             "webdriver-manager>=4.0.0",
+            "numpy>=1.24.0",
         ],
     },
     entry_points={
