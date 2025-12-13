@@ -80,6 +80,21 @@ Unified diff format:
 website-diff url1 url2 --format unified
 ```
 
+Generate markdown report (includes visual comparison images):
+
+```bash
+website-diff url1 url2 --markdown
+```
+
+The markdown report includes:
+- Executive summary with change statistics
+- Visual comparison screenshots (if `--visual` is used)
+- High/medium/low significance changes
+- Site-wide comparison results (if `--traverse` is used)
+- Recommendations based on findings
+
+Reports are saved to `./reports/` by default (configurable with `--report-dir`).
+
 ### Visual Comparison
 
 Take screenshots and compare them visually:
@@ -90,6 +105,9 @@ website-diff url1 url2 --visual
 
 # Compare in multiple browsers
 website-diff url1 url2 --visual --browsers chrome firefox
+
+# Generate markdown report with images
+website-diff url1 url2 --visual --markdown
 
 # Custom screenshot directory
 website-diff url1 url2 --visual --screenshot-dir ./my-screenshots
@@ -105,6 +123,7 @@ Visual comparison generates:
 - Screenshots of both pages in each browser
 - Side-by-side comparison images
 - Difference highlighting (red pixels show differences)
+- Markdown report with embedded image references (when using `--markdown`)
 
 ### Advanced Options
 
@@ -166,6 +185,9 @@ Monitor a website for meaningful changes:
 
 ```bash
 website-diff https://example.com/page1 https://example.com/page2 -o changes.txt
+
+# With markdown report
+website-diff https://example.com/page1 https://example.com/page2 --markdown
 ```
 
 ### Development Testing
