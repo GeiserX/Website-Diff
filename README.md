@@ -1,220 +1,294 @@
-# Website-Diff
+<p align="center">
+  <img src="docs/images/banner.svg" alt="Website-Diff Banner" width="900"/>
+</p>
 
-A comprehensive Python tool for detecting meaningful differences between two web pages, with special support for cleaning Wayback Machine artifacts. Perfect for developers migrating websites or verifying changes.
+<p align="center">
+  <strong>Detect meaningful differences between web pages -- with Wayback Machine artifact cleaning, visual comparison, and significance scoring.</strong>
+</p>
 
-## Features
+<p align="center">
+  <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue?logo=python&logoColor=white" alt="Python Versions"/></a>
+  <a href="https://github.com/GeiserX/Website-Diff/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/version-1.0.0-orange" alt="Version"/></a>
+  <a href="https://github.com/GeiserX/Website-Diff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License: GPL-3.0"/></a>
+  <a href="https://hub.docker.com/"><img src="https://img.shields.io/badge/docker-ready-blue?logo=docker&logoColor=white" alt="Docker"/></a>
+</p>
 
-- **Intelligent Diff Engine**: Focuses on meaningful changes (content, structure, scripts) while ignoring noise
-- **Wayback Machine Support**: Automatically detects and removes Wayback Machine banners, scripts, and URL rewrites
-- **Significance Scoring**: Categorizes changes as high, medium, or low significance
-- **Multiple Output Formats**: Text, JSON, and unified diff formats
-- **Visual Comparison**: Take screenshots in multiple browsers and generate side-by-side comparison images
-- **Developer-Focused**: Highlights changes that matter for migrations and development
+---
+
+## Why Website-Diff?
+
+Comparing web pages sounds simple until you deal with Wayback Machine injection artifacts, insignificant whitespace noise, and visual regressions invisible to the DOM. **Website-Diff** is a purpose-built CLI that solves all three:
+
+- **Wayback Machine cleaning** -- automatically strips banners, analytics scripts, playback code, and URL rewrites so you compare *actual* content.
+- **Significance scoring** -- every change is tagged High, Medium, or Low so you focus on what matters.
+- **Multi-browser visual comparison** -- captures screenshots in Chrome, Firefox, Edge, and Opera, then generates pixel-diff images.
+- **CI/CD-ready exit codes** -- integrate directly into pipelines (`0` = no changes, `1` = low/medium, `2` = high).
+
+---
+
+## Table of Contents
+
+- [Quick Start](#quick-start)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Visual Comparison](#visual-comparison)
+- [Markdown Reports](#markdown-reports)
+- [CI/CD Integration](#cicd-integration)
+- [How It Works](#how-it-works)
+- [Output Formats](#output-formats)
+- [Comparison with Similar Tools](#comparison-with-similar-tools)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
+## Quick Start
+
+```bash
+pip install -e .
+
+# Compare two pages
+website-diff https://example.com/old https://example.com/new
+
+# Compare a Wayback snapshot with the live site
+website-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
+
+# Full report: visual diff + markdown
+website-diff https://old.example.com https://new.example.com --visual --markdown
+```
+
+---
 
 ## Installation
 
+### From source
+
 ```bash
-# Clone the repository
-git clone https://github.com/sergio/Website-Diff.git
+git clone https://github.com/GeiserX/Website-Diff.git
 cd Website-Diff
-
-# Create virtual environment (recommended)
 python3 -m venv venv
-
-# Activate virtual environment
-# On macOS/Linux:
-source venv/bin/activate
-# On Windows:
-venv\Scripts\activate
-
-# Install basic dependencies
+source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
-
-# For visual comparison (optional but recommended)
-pip install selenium Pillow webdriver-manager
-
-# Install in development mode
 pip install -e .
 ```
 
+For visual comparison support:
+
+```bash
+pip install -e ".[visual]"
+```
+
+### Docker
+
+```bash
+docker build -t website-diff .
+docker run --rm website-diff https://example.com/a https://example.com/b
+```
+
+---
+
 ## Usage
 
-### Basic Comparison
-
-Compare two URLs:
+### Basic comparison
 
 ```bash
 website-diff https://example.com/page1 https://example.com/page2
 ```
 
-### Wayback Machine Support
+### Wayback Machine support
 
-The tool automatically detects Wayback Machine URLs and cleans artifacts:
+The tool automatically detects Wayback Machine URLs and cleans injection artifacts before comparing:
 
 ```bash
-# Compare a Wayback archive with current page
+# Archive vs. live site
 website-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
 
-# Compare two Wayback archives
-website-diff https://web.archive.org/web/20230101/https://example.com/ \
-              https://web.archive.org/web/20230201/https://example.com/
+# Two archive snapshots
+website-diff \
+  https://web.archive.org/web/20230101/https://example.com/ \
+  https://web.archive.org/web/20230601/https://example.com/
 ```
 
-### Output Options
-
-Save output to a file:
+### Output formats
 
 ```bash
+# Save to file
 website-diff url1 url2 -o diff.txt
-```
 
-Output as JSON:
-
-```bash
+# JSON (for programmatic consumption)
 website-diff url1 url2 --format json
-```
 
-Unified diff format:
-
-```bash
+# Unified diff
 website-diff url1 url2 --format unified
 ```
 
-Generate markdown report (includes visual comparison images):
+### Site-wide traversal
 
 ```bash
-website-diff url1 url2 --markdown
+# Crawl and compare across linked pages (depth-limited)
+website-diff url1 url2 --traverse --depth 2
 ```
 
-The markdown report includes:
-- Executive summary with change statistics
-- Visual comparison screenshots (if `--visual` is used)
-- High/medium/low significance changes
-- Site-wide comparison results (if `--traverse` is used)
-- Recommendations based on findings
+### Advanced options
 
-Reports are saved to `./reports/` by default (configurable with `--report-dir`).
+| Flag | Description |
+|------|-------------|
+| `--no-clean-wayback` | Disable Wayback Machine artifact removal |
+| `--no-ignore-whitespace` | Treat whitespace changes as significant |
+| `--timeout N` | Set HTTP timeout in seconds (default: 30) |
+| `--verbose` | Enable detailed logging |
 
-### Visual Comparison
+---
 
-Take screenshots and compare them visually:
+## Visual Comparison
+
+Take screenshots in one or more browsers and generate side-by-side difference images:
 
 ```bash
-# Enable visual comparison (screenshots)
+# Auto-detect all installed browsers
 website-diff url1 url2 --visual
 
-# Auto-detect and use all available browsers (default)
-website-diff url1 url2 --visual --markdown
+# Specific browsers
+website-diff url1 url2 --visual --browsers chrome firefox edge opera
 
-# Compare in specific browsers
-website-diff url1 url2 --visual --browsers chrome firefox edge
-
-# Generate markdown report with images
-website-diff url1 url2 --visual --markdown
-
-# Custom screenshot directory
-website-diff url1 url2 --visual --screenshot-dir ./my-screenshots
-
-# Custom viewport size
+# Custom viewport
 website-diff url1 url2 --visual --viewport-width 1280 --viewport-height 720
 
-# Run browser in visible mode (for debugging)
+# Non-headless mode (for debugging)
 website-diff url1 url2 --visual --no-headless
+
+# Custom screenshot output
+website-diff url1 url2 --visual --screenshot-dir ./my-screenshots
 ```
 
 Visual comparison generates:
-- Screenshots of both pages in each browser
+- Screenshots of both pages per browser
 - Side-by-side comparison images
-- Difference highlighting (red pixels show differences)
-- Markdown report with embedded image references (when using `--markdown`)
+- Pixel-level difference highlighting (red overlay marks changes)
 
-### Advanced Options
+---
+
+## Markdown Reports
+
+Generate comprehensive Markdown reports that include everything in a single reviewable document:
 
 ```bash
-# Don't clean Wayback Machine artifacts
-website-diff url1 url2 --no-clean-wayback
-
-# Don't ignore whitespace differences
-website-diff url1 url2 --no-ignore-whitespace
-
-# Set custom timeout
-website-diff url1 url2 --timeout 60
-
-# Verbose output
-website-diff url1 url2 --verbose
+website-diff url1 url2 --visual --markdown --report-dir ./reports
 ```
+
+Each report contains:
+- Executive summary with change statistics
+- Visual comparison screenshots (when `--visual` is used)
+- Changes grouped by significance (High / Medium / Low)
+- Site-wide results (when `--traverse` is used)
+- Actionable recommendations
+
+---
+
+## CI/CD Integration
+
+Website-Diff returns meaningful exit codes designed for pipeline gates:
+
+| Exit Code | Meaning |
+|-----------|---------|
+| `0` | No differences detected |
+| `1` | Low or medium significance changes |
+| `2` | High significance changes detected |
+
+### GitHub Actions example
+
+```yaml
+name: Visual Regression Check
+on:
+  pull_request:
+
+jobs:
+  diff:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install Website-Diff
+        run: |
+          pip install -r requirements.txt
+          pip install -e ".[visual]"
+
+      - name: Compare staging vs production
+        run: |
+          website-diff \
+            https://staging.example.com \
+            https://production.example.com \
+            --visual --markdown --format json -o diff.json
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: diff-report
+          path: reports/
+```
+
+### Shell script gate
+
+```bash
+website-diff "$OLD_URL" "$NEW_URL" --format json -o result.json
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 2 ]; then
+  echo "BLOCKING: high-significance changes detected"
+  exit 1
+elif [ $EXIT_CODE -eq 1 ]; then
+  echo "WARNING: minor changes detected"
+fi
+```
+
+---
 
 ## How It Works
 
-### Wayback Machine Cleaning
+### Wayback Machine cleaning
 
 When a Wayback Machine URL is detected, the tool automatically:
 
-1. **Removes Header Artifacts**: Strips analytics scripts, playback scripts, and banner CSS
-2. **Removes Footer Comments**: Removes archival metadata and copyright notices
-3. **Restores URLs**: Converts Wayback-prefixed URLs back to original URLs
-4. **Normalizes Content**: Handles whitespace and formatting differences
+1. **Removes header artifacts** -- strips analytics scripts, playback scripts, and banner CSS injected by the Wayback Machine.
+2. **Removes footer comments** -- removes archival metadata and copyright notices.
+3. **Restores URLs** -- converts `web.archive.org/web/…/` prefixed URLs back to their originals.
+4. **Normalizes content** -- handles whitespace and formatting differences introduced by archival.
 
-### Significance Scoring
+### Significance scoring
 
-Changes are categorized by significance:
+Every detected change is categorized:
 
-- **High Significance**: Structural changes, content changes, meta tags, scripts, stylesheets
-- **Medium Significance**: Attribute changes, styling, div/span modifications
-- **Low Significance**: Whitespace, comments, minor formatting
+| Level | Examples |
+|-------|----------|
+| **High** | Structural changes, content text, meta tags, scripts, stylesheets |
+| **Medium** | Attribute changes, inline styling, div/span modifications |
+| **Low** | Whitespace, comments, minor formatting |
 
-### Intelligent Comparison
+### Intelligent comparison
 
 The diff engine:
-
 - Focuses on meaningful content changes
-- Ignores noise like timestamps, auto-generated IDs
-- Provides context around changes
-- Groups changes by significance for easy review
+- Ignores noise like timestamps and auto-generated IDs
+- Provides context around each change
+- Groups results by significance for fast review
 
-## Use Cases
+---
 
-### Website Migration Verification
+## Output Formats
 
-After migrating a website from Wayback Machine archives, verify that the migration was successful:
+### Text (default)
 
-```bash
-website-diff https://web.archive.org/web/20230101/https://oldsite.com/ https://newsite.com/
-```
+Summary statistics, significance breakdown, and detailed changes with context lines.
 
-### Change Detection
+### JSON
 
-Monitor a website for meaningful changes:
-
-```bash
-website-diff https://example.com/page1 https://example.com/page2 -o changes.txt
-
-# With markdown report
-website-diff https://example.com/page1 https://example.com/page2 --markdown
-```
-
-### Development Testing
-
-Compare development and production versions:
-
-```bash
-website-diff https://dev.example.com/page https://prod.example.com/page
-```
-
-## Output Format
-
-### Text Output
-
-The default text output includes:
-
-- Summary statistics (total changes, added/removed/modified)
-- Significance breakdown
-- Detailed changes grouped by significance
-- Context around each change
-
-### JSON Output
-
-Structured JSON output for programmatic processing:
+Structured output for programmatic processing:
 
 ```json
 {
@@ -232,43 +306,38 @@ Structured JSON output for programmatic processing:
       "type": "modified",
       "old_text": "...",
       "new_text": "...",
-      "significance": "high",
-      ...
+      "significance": "high"
     }
   ]
 }
 ```
 
-## Exit Codes
+### Unified diff
 
-- `0`: No changes detected
-- `1`: Low or medium significance changes
-- `2`: High significance changes detected
+Standard unified diff format, compatible with `patch` and code review tools.
 
-## Requirements
+---
 
-- Python 3.8+
-- requests library
-- For visual comparison:
-  - selenium
-  - Pillow (PIL)
-  - webdriver-manager (optional, for automatic driver management)
-  - Chrome or Firefox browser installed
+## Comparison with Similar Tools
 
-## License
+| Feature | **Website-Diff** | [htmldiff](https://github.com/ian-ross/htmldiff) | [diff2html](https://github.com/rtfpessoa/diff2html) | [BackstopJS](https://github.com/garris/BackstopJS) | [Percy](https://percy.io) |
+|---------|:-:|:-:|:-:|:-:|:-:|
+| HTML-aware semantic diff | Yes | Yes | No | No | No |
+| Wayback Machine artifact cleaning | **Yes** | No | No | No | No |
+| Significance scoring | **Yes** | No | No | No | No |
+| Visual (screenshot) comparison | Yes | No | No | Yes | Yes |
+| Multi-browser support | Yes | N/A | N/A | Yes | Yes |
+| Site-wide crawl and compare | Yes | No | No | Yes | No |
+| Markdown report generation | Yes | No | No | No | No |
+| CI/CD exit codes | Yes | No | No | Yes | Yes |
+| Self-hosted / no SaaS | Yes | Yes | Yes | Yes | No |
+| Free and open source | GPL-3.0 | MIT | MIT | MIT | Freemium |
 
-This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
-
-**Note**: This software is NOT for commercial use.
-
-See the [LICENSE](LICENSE) file for details.
+---
 
 ## Testing
 
-Run tests locally:
-
 ```bash
-# Install test dependencies
 pip install -r requirements-dev.txt
 
 # Run tests
@@ -278,36 +347,22 @@ pytest tests/ -v
 pytest tests/ -v --cov=website_diff --cov-report=html
 ```
 
+---
+
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-### Development Setup
+Contributions are welcome. To get started:
 
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new features
-5. Ensure all tests pass: `pytest tests/ -v`
-6. Submit a Pull Request
+2. Create a feature branch (`git checkout -b feature/my-feature`)
+3. Add tests for new functionality
+4. Ensure all tests pass: `pytest tests/ -v`
+5. Submit a Pull Request
 
-## CI/CD
+---
 
-The project uses GitHub Actions for:
-- **CI**: Runs tests on push/PR across Python 3.8-3.11
-- **Release**: Automatically creates GitHub releases when version tags are pushed
+## License
 
-To create a release:
-```bash
-git tag v1.0.0
-git push origin v1.0.0
-```
+This project is licensed under the **GNU General Public License v3.0** (GPL-3.0). See the [LICENSE](LICENSE) file for details.
 
-This will:
-1. Run all tests
-2. Build the package
-3. Create a GitHub release with distribution files
-
-## Acknowledgments
-
-Inspired by discussions on software testing tools for comparing websites, particularly for migration scenarios.
+This software is **not** intended for commercial use.
