@@ -361,6 +361,13 @@ Contributions are welcome. To get started:
 
 ---
 
+## Related Web Archiving Tools
+
+- [Wayback-Archive](https://github.com/GeiserX/Wayback-Archive) — Download complete websites from the Wayback Machine
+- [Way-CMS](https://github.com/GeiserX/Way-CMS) — Simple web CMS for editing archived HTML/CSS files
+- [web-mirror](https://github.com/GeiserX/web-mirror) — Mirror any webpage for offline access
+- [media-download](https://github.com/GeiserX/media-download) — Download all media files from any web page
+
 ## License
 
 This project is licensed under the **GNU General Public License v3.0** (GPL-3.0). See the [LICENSE](LICENSE) file for details.
