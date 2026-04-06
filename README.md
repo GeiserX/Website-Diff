@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue?logo=python&logoColor=white" alt="Python Versions"/></a>
   <a href="https://pypi.org/project/wayback-diff/"><img src="https://img.shields.io/pypi/v/wayback-diff?style=flat-square" alt="PyPI"></a>
-  <a href="https://github.com/GeiserX/Wayback-Diff/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/version-1.0.0-orange" alt="Version"/></a>
+  <a href="https://github.com/GeiserX/Wayback-Diff/releases/latest"><img src="https://img.shields.io/github/v/release/GeiserX/Wayback-Diff?color=orange" alt="Version"/></a>
   <a href="https://github.com/GeiserX/Wayback-Diff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License: GPL-3.0"/></a>
   <a href="https://hub.docker.com/"><img src="https://img.shields.io/badge/docker-ready-blue?logo=docker&logoColor=white" alt="Docker"/></a>
 </p>
