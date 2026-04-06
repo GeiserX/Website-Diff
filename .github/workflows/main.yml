@@ -204,11 +204,8 @@ jobs:
         draft: false
         prerelease: false
 
-    - name: Install build tools
-      run: pip install build twine
-
-    - name: Build package
-      run: python3 -m build
+    - name: Install twine
+      run: pip install twine
 
     - name: Publish to PyPI
       if: ${{ env.PYPI_TOKEN != '' }}

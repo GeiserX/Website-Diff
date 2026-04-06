@@ -14,6 +14,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/GeiserX/Wayback-Diff",
+    license="GPL-3.0-only",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
