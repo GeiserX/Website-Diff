@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import Mock, patch
-from website_diff.fetcher import WebFetcher
+from wayback_diff.fetcher import WebFetcher
 
 
 class TestWebFetcher:
@@ -16,7 +16,7 @@ class TestWebFetcher:
         assert not fetcher.is_html("application/json")
         assert not fetcher.is_html(None)
     
-    @patch('website_diff.fetcher.requests.Session.get')
+    @patch('wayback_diff.fetcher.requests.Session.get')
     def test_fetch_success(self, mock_get):
         """Test successful fetch."""
         mock_response = Mock()
@@ -33,7 +33,7 @@ class TestWebFetcher:
         assert content_type == 'text/html; charset=utf-8'
         assert metadata['status_code'] == 200
     
-    @patch('website_diff.fetcher.requests.Session.get')
+    @patch('wayback_diff.fetcher.requests.Session.get')
     def test_fetch_404(self, mock_get):
         """Test 404 response."""
         mock_response = Mock()

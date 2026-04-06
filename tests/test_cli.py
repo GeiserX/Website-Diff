@@ -3,7 +3,7 @@
 import pytest
 import sys
 from unittest.mock import patch, Mock
-from website_diff.cli import format_output
+from wayback_diff.cli import format_output
 
 
 class TestCLI:

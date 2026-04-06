@@ -12,7 +12,7 @@
 ### Security Measures Implemented
 
 #### 1. URL Validation and SSRF Protection
-- **Location**: `website_diff/fetcher.py`
+- **Location**: `wayback_diff/fetcher.py`
 - **Implementation**: 
   - URL scheme validation (only http/https allowed)
   - Basic SSRF protection with localhost/internal network detection
@@ -21,7 +21,7 @@
 - **Note**: Localhost access is allowed for development/testing purposes
 
 #### 2. Input Sanitization
-- **Location**: `website_diff/cli.py`, `website_diff/link_traverser.py`
+- **Location**: `wayback_diff/cli.py`, `wayback_diff/link_traverser.py`
 - **Implementation**:
   - URL normalization and validation
   - Filtering of dangerous protocols (javascript:, mailto:, tel:, etc.)

@@ -4,9 +4,9 @@ import re
 from typing import List, Dict, Set, Optional, Tuple
 from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
-from website_diff.fetcher import WebFetcher
-from website_diff.wayback_cleaner import WaybackCleaner
-from website_diff.diff_engine import DiffEngine
+from wayback_diff.fetcher import WebFetcher
+from wayback_diff.wayback_cleaner import WaybackCleaner
+from wayback_diff.diff_engine import DiffEngine
 
 
 class LinkTraverser:

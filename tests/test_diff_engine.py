@@ -1,7 +1,7 @@
 """Tests for diff engine."""
 
 import pytest
-from website_diff.diff_engine import DiffEngine
+from wayback_diff.diff_engine import DiffEngine
 
 
 class TestDiffEngine:

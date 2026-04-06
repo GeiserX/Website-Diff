@@ -5,15 +5,15 @@ import sys
 from typing import Optional
 from pathlib import Path
 
-from website_diff.fetcher import WebFetcher
-from website_diff.wayback_cleaner import WaybackCleaner
-from website_diff.diff_engine import DiffEngine
-from website_diff.link_traverser import LinkTraverser
-from website_diff.report_generator import MarkdownReportGenerator
+from wayback_diff.fetcher import WebFetcher
+from wayback_diff.wayback_cleaner import WaybackCleaner
+from wayback_diff.diff_engine import DiffEngine
+from wayback_diff.link_traverser import LinkTraverser
+from wayback_diff.report_generator import MarkdownReportGenerator
 
 # Optional visual comparison import
 try:
-    from website_diff.visual_comparison import VisualComparison
+    from wayback_diff.visual_comparison import VisualComparison
     VISUAL_COMPARISON_AVAILABLE = True
 except ImportError:
     VISUAL_COMPARISON_AVAILABLE = False

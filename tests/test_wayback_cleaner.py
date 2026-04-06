@@ -1,7 +1,7 @@
 """Tests for Wayback Machine cleaner."""
 
 import pytest
-from website_diff.wayback_cleaner import WaybackCleaner
+from wayback_diff.wayback_cleaner import WaybackCleaner
 
 
 class TestWaybackCleaner:

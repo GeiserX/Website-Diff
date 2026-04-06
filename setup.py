@@ -7,7 +7,7 @@ with open("README.md", "r", encoding="utf-8") as fh:
 
 setup(
     name="wayback-diff",
-    version="1.0.0",
+    version="1.1.0",
     author="geiserx",
     author_email="sergio@geiser.cloud",
     description="A comprehensive tool for comparing web pages with Wayback Machine support",
@@ -43,7 +43,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "wayback-diff=website_diff.cli:main",
+            "wayback-diff=wayback_diff.cli:main",
         ],
     },
 )

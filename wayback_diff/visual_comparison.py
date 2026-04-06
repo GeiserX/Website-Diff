@@ -370,7 +370,7 @@ class VisualComparison:
                 pass  # Continue anyway
             
             # Remove Wayback Machine banner if present
-            from website_diff.wayback_cleaner import WaybackCleaner
+            from wayback_diff.wayback_cleaner import WaybackCleaner
             if WaybackCleaner.is_wayback_url(url):
                 self._remove_wayback_banner()
                 time.sleep(0.5)  # Wait for banner removal
@@ -396,7 +396,7 @@ class VisualComparison:
     def _take_full_page_screenshot(self) -> bytes:
         """Take full page screenshot by scrolling and stitching."""
         # Remove Wayback banner before measuring (if present)
-        from website_diff.wayback_cleaner import WaybackCleaner
+        from wayback_diff.wayback_cleaner import WaybackCleaner
         current_url = self.driver.current_url
         if WaybackCleaner.is_wayback_url(current_url):
             self._remove_wayback_banner()

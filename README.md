@@ -354,7 +354,7 @@ pip install -r requirements-dev.txt
 pytest tests/ -v
 
 # Run with coverage
-pytest tests/ -v --cov=website_diff --cov-report=html
+pytest tests/ -v --cov=wayback_diff --cov-report=html
 ```
 
 ---
