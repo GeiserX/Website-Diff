@@ -62,6 +62,15 @@ wayback-diff https://old.example.com https://new.example.com --visual --markdown
 
 ## Installation
 
+### From PyPI
+
+```bash
+pip install wayback-diff
+
+# With visual comparison support
+pip install wayback-diff[visual]
+```
+
 ### From source
 
 ```bash
