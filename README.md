@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/banner.svg" alt="Website-Diff Banner" width="900"/>
+  <img src="https://raw.githubusercontent.com/GeiserX/Wayback-Diff/main/docs/images/banner.svg" alt="Wayback-Diff Banner" width="900"/>
 </p>
 
 <p align="center">
@@ -8,16 +8,17 @@
 
 <p align="center">
   <a href="https://www.python.org/downloads/"><img src="https://img.shields.io/badge/python-3.8%20%7C%203.9%20%7C%203.10%20%7C%203.11-blue?logo=python&logoColor=white" alt="Python Versions"/></a>
-  <a href="https://github.com/GeiserX/Website-Diff/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/version-1.0.0-orange" alt="Version"/></a>
-  <a href="https://github.com/GeiserX/Website-Diff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License: GPL-3.0"/></a>
+  <a href="https://pypi.org/project/wayback-diff/"><img src="https://img.shields.io/pypi/v/wayback-diff?style=flat-square" alt="PyPI"></a>
+  <a href="https://github.com/GeiserX/Wayback-Diff/releases/tag/v1.0.0"><img src="https://img.shields.io/badge/version-1.0.0-orange" alt="Version"/></a>
+  <a href="https://github.com/GeiserX/Wayback-Diff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License: GPL-3.0"/></a>
   <a href="https://hub.docker.com/"><img src="https://img.shields.io/badge/docker-ready-blue?logo=docker&logoColor=white" alt="Docker"/></a>
 </p>
 
 ---
 
-## Why Website-Diff?
+## Why Wayback-Diff?
 
-Comparing web pages sounds simple until you deal with Wayback Machine injection artifacts, insignificant whitespace noise, and visual regressions invisible to the DOM. **Website-Diff** is a purpose-built CLI that solves all three:
+Comparing web pages sounds simple until you deal with Wayback Machine injection artifacts, insignificant whitespace noise, and visual regressions invisible to the DOM. **Wayback-Diff** is a purpose-built CLI that solves all three:
 
 - **Wayback Machine cleaning** -- automatically strips banners, analytics scripts, playback code, and URL rewrites so you compare *actual* content.
 - **Significance scoring** -- every change is tagged High, Medium, or Low so you focus on what matters.
@@ -45,16 +46,16 @@ Comparing web pages sounds simple until you deal with Wayback Machine injection 
 ## Quick Start
 
 ```bash
-pip install -e .
+pip install wayback-diff
 
 # Compare two pages
-website-diff https://example.com/old https://example.com/new
+wayback-diff https://example.com/old https://example.com/new
 
 # Compare a Wayback snapshot with the live site
-website-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
+wayback-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
 
 # Full report: visual diff + markdown
-website-diff https://old.example.com https://new.example.com --visual --markdown
+wayback-diff https://old.example.com https://new.example.com --visual --markdown
 ```
 
 ---
@@ -64,8 +65,8 @@ website-diff https://old.example.com https://new.example.com --visual --markdown
 ### From source
 
 ```bash
-git clone https://github.com/GeiserX/Website-Diff.git
-cd Website-Diff
+git clone https://github.com/GeiserX/Wayback-Diff.git
+cd Wayback-Diff
 python3 -m venv venv
 source venv/bin/activate      # Windows: venv\Scripts\activate
 pip install -r requirements.txt
@@ -81,8 +82,8 @@ pip install -e ".[visual]"
 ### Docker
 
 ```bash
-docker build -t website-diff .
-docker run --rm website-diff https://example.com/a https://example.com/b
+docker build -t wayback-diff .
+docker run --rm wayback-diff https://example.com/a https://example.com/b
 ```
 
 ---
@@ -92,7 +93,7 @@ docker run --rm website-diff https://example.com/a https://example.com/b
 ### Basic comparison
 
 ```bash
-website-diff https://example.com/page1 https://example.com/page2
+wayback-diff https://example.com/page1 https://example.com/page2
 ```
 
 ### Wayback Machine support
@@ -101,10 +102,10 @@ The tool automatically detects Wayback Machine URLs and cleans injection artifac
 
 ```bash
 # Archive vs. live site
-website-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
+wayback-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
 
 # Two archive snapshots
-website-diff \
+wayback-diff \
   https://web.archive.org/web/20230101/https://example.com/ \
   https://web.archive.org/web/20230601/https://example.com/
 ```
@@ -113,20 +114,20 @@ website-diff \
 
 ```bash
 # Save to file
-website-diff url1 url2 -o diff.txt
+wayback-diff url1 url2 -o diff.txt
 
 # JSON (for programmatic consumption)
-website-diff url1 url2 --format json
+wayback-diff url1 url2 --format json
 
 # Unified diff
-website-diff url1 url2 --format unified
+wayback-diff url1 url2 --format unified
 ```
 
 ### Site-wide traversal
 
 ```bash
 # Crawl and compare across linked pages (depth-limited)
-website-diff url1 url2 --traverse --depth 2
+wayback-diff url1 url2 --traverse --depth 2
 ```
 
 ### Advanced options
@@ -146,19 +147,19 @@ Take screenshots in one or more browsers and generate side-by-side difference im
 
 ```bash
 # Auto-detect all installed browsers
-website-diff url1 url2 --visual
+wayback-diff url1 url2 --visual
 
 # Specific browsers
-website-diff url1 url2 --visual --browsers chrome firefox edge opera
+wayback-diff url1 url2 --visual --browsers chrome firefox edge opera
 
 # Custom viewport
-website-diff url1 url2 --visual --viewport-width 1280 --viewport-height 720
+wayback-diff url1 url2 --visual --viewport-width 1280 --viewport-height 720
 
 # Non-headless mode (for debugging)
-website-diff url1 url2 --visual --no-headless
+wayback-diff url1 url2 --visual --no-headless
 
 # Custom screenshot output
-website-diff url1 url2 --visual --screenshot-dir ./my-screenshots
+wayback-diff url1 url2 --visual --screenshot-dir ./my-screenshots
 ```
 
 Visual comparison generates:
@@ -173,7 +174,7 @@ Visual comparison generates:
 Generate comprehensive Markdown reports that include everything in a single reviewable document:
 
 ```bash
-website-diff url1 url2 --visual --markdown --report-dir ./reports
+wayback-diff url1 url2 --visual --markdown --report-dir ./reports
 ```
 
 Each report contains:
@@ -187,7 +188,7 @@ Each report contains:
 
 ## CI/CD Integration
 
-Website-Diff returns meaningful exit codes designed for pipeline gates:
+Wayback-Diff returns meaningful exit codes designed for pipeline gates:
 
 | Exit Code | Meaning |
 |-----------|---------|
@@ -213,14 +214,14 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install Website-Diff
+      - name: Install Wayback-Diff
         run: |
           pip install -r requirements.txt
           pip install -e ".[visual]"
 
       - name: Compare staging vs production
         run: |
-          website-diff \
+          wayback-diff \
             https://staging.example.com \
             https://production.example.com \
             --visual --markdown --format json -o diff.json
@@ -236,7 +237,7 @@ jobs:
 ### Shell script gate
 
 ```bash
-website-diff "$OLD_URL" "$NEW_URL" --format json -o result.json
+wayback-diff "$OLD_URL" "$NEW_URL" --format json -o result.json
 EXIT_CODE=$?
 
 if [ $EXIT_CODE -eq 2 ]; then
@@ -320,7 +321,7 @@ Standard unified diff format, compatible with `patch` and code review tools.
 
 ## Comparison with Similar Tools
 
-| Feature | **Website-Diff** | [htmldiff](https://github.com/ian-ross/htmldiff) | [diff2html](https://github.com/rtfpessoa/diff2html) | [BackstopJS](https://github.com/garris/BackstopJS) | [Percy](https://percy.io) |
+| Feature | **Wayback-Diff** | [htmldiff](https://github.com/ian-ross/htmldiff) | [diff2html](https://github.com/rtfpessoa/diff2html) | [BackstopJS](https://github.com/garris/BackstopJS) | [Percy](https://percy.io) |
 |---------|:-:|:-:|:-:|:-:|:-:|
 | HTML-aware semantic diff | Yes | Yes | No | No | No |
 | Wayback Machine artifact cleaning | **Yes** | No | No | No | No |

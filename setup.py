@@ -1,4 +1,4 @@
-"""Setup configuration for Website-Diff."""
+"""Setup configuration for Wayback-Diff."""
 
 from setuptools import setup, find_packages
 
@@ -6,14 +6,14 @@ with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
 setup(
-    name="website-diff",
+    name="wayback-diff",
     version="1.0.0",
     author="geiserx",
     author_email="sergio@geiser.cloud",
     description="A comprehensive tool for comparing web pages with Wayback Machine support",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/geiserx/Website-Diff",
+    url="https://github.com/GeiserX/Wayback-Diff",
     packages=find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",
@@ -43,7 +43,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "website-diff=website_diff.cli:main",
+            "wayback-diff=website_diff.cli:main",
         ],
     },
 )
