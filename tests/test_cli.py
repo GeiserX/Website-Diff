@@ -32,7 +32,7 @@ class TestCLI:
         
         output = format_output(changes, summary, 'text')
         
-        assert 'WEBSITE DIFF SUMMARY' in output
+        assert 'WAYBACK DIFF SUMMARY' in output
         assert 'Total changes: 5' in output
         assert 'HIGH SIGNIFICANCE CHANGES' in output
     

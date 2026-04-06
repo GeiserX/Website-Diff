@@ -21,4 +21,4 @@ COPY . .
 RUN pip install --no-cache-dir -e .
 
 # Set entrypoint
-ENTRYPOINT ["website-diff"]
+ENTRYPOINT ["wayback-diff"]

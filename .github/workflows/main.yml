@@ -10,7 +10,8 @@ on:
 
 env:
   REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/website-diff
+  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/wayback-diff
+  PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
 jobs:
   test:
@@ -182,23 +183,36 @@ jobs:
           dist/*.tar.gz
         name: Release ${{ steps.tag_version.outputs.version }}
         body: |
-          ## Website-Diff ${{ steps.tag_version.outputs.version }}
-          
+          ## Wayback-Diff ${{ steps.tag_version.outputs.version }}
+
           ### Installation
           ```bash
-          pip install website-diff==${{ steps.tag_version.outputs.version }}
+          pip install wayback-diff==${{ steps.tag_version.outputs.version }}
           ```
-          
+
           ### Docker
           ```bash
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ steps.tag_version.outputs.version }}
           ```
-          
+
           ### Changes
           See [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for details.
-          
+
           ### Downloads
-          - Source distribution: `website-diff-${{ steps.tag_version.outputs.version }}.tar.gz`
-          - Wheel: `website_diff-${{ steps.tag_version.outputs.version }}-py3-none-any.whl`
+          - Source distribution: `wayback_diff-${{ steps.tag_version.outputs.version }}.tar.gz`
+          - Wheel: `wayback_diff-${{ steps.tag_version.outputs.version }}-py3-none-any.whl`
         draft: false
         prerelease: false
+
+    - name: Install build tools
+      run: pip install build twine
+
+    - name: Build package
+      run: python3 -m build
+
+    - name: Publish to PyPI
+      if: ${{ env.PYPI_TOKEN != '' }}
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: twine upload dist/*

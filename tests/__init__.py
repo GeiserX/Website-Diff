@@ -1,1 +1,1 @@
-"""Tests for Website-Diff."""
+"""Tests for Wayback-Diff."""

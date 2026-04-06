@@ -73,7 +73,7 @@
 ### Reporting a Vulnerability
 
 If you discover a security vulnerability, please report it via:
-- GitHub Security Advisories: https://github.com/GeiserX/Website-Diff/security/advisories
+- GitHub Security Advisories: https://github.com/GeiserX/Wayback-Diff/security/advisories
 - Email: sergio@geiser.cloud
 
 Please include:

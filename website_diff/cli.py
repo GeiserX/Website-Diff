@@ -1,4 +1,4 @@
-"""Command-line interface for Website-Diff."""
+"""Command-line interface for Wayback-Diff."""
 
 import argparse
 import sys
@@ -44,7 +44,7 @@ def format_output(changes: list, summary: dict, output_format: str = "text") -> 
     else:  # text format
         lines = []
         lines.append("=" * 80)
-        lines.append("WEBSITE DIFF SUMMARY")
+        lines.append("WAYBACK DIFF SUMMARY")
         lines.append("=" * 80)
         lines.append(f"Total changes: {summary['total_changes']}")
         lines.append(f"  Added: {summary['added']}")
@@ -109,16 +109,16 @@ def main():
         epilog="""
 Examples:
   # Compare two URLs
-  website-diff https://example.com/page1 https://example.com/page2
+  wayback-diff https://example.com/page1 https://example.com/page2
   
   # Compare with Wayback Machine URLs (auto-cleans artifacts)
-  website-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
+  wayback-diff https://web.archive.org/web/20230101/https://example.com/ https://example.com/
   
   # Save output to file
-  website-diff url1 url2 -o diff.txt
+  wayback-diff url1 url2 -o diff.txt
   
   # Output as JSON
-  website-diff url1 url2 --format json
+  wayback-diff url1 url2 --format json
         """
     )
     
