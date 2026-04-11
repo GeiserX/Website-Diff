@@ -12,6 +12,7 @@
   <a href="https://github.com/GeiserX/Wayback-Diff/releases/latest"><img src="https://img.shields.io/github/v/release/GeiserX/Wayback-Diff?color=orange" alt="Version"/></a>
   <a href="https://github.com/GeiserX/Wayback-Diff/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-GPL--3.0-green" alt="License: GPL-3.0"/></a>
   <a href="https://hub.docker.com/"><img src="https://img.shields.io/badge/docker-ready-blue?logo=docker&logoColor=white" alt="Docker"/></a>
+  <a href="https://codecov.io/gh/GeiserX/Wayback-Diff"><img src="https://codecov.io/gh/GeiserX/Wayback-Diff/graph/badge.svg" alt="codecov"/></a>
 </p>
 
 ---
