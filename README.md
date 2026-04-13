@@ -385,7 +385,7 @@ Contributions are welcome. To get started:
 | Project | Description |
 |---------|-------------|
 | [Wayback-Archive](https://github.com/GeiserX/Wayback-Archive) | Download complete websites from the Wayback Machine with full asset preservation |
-| [Website-Diff](https://github.com/GeiserX/Website-Diff) | Intelligent web page comparison tool with visual regression testing |
+| [Wayback-Diff](https://github.com/GeiserX/Wayback-Diff) | Intelligent web page comparison tool with Wayback Machine support |
 | [Way-CMS](https://github.com/GeiserX/Way-CMS) | Simple web CMS for editing HTML/CSS files downloaded from Wayback Archive |
 | [web-mirror](https://github.com/GeiserX/web-mirror) | Mirror any webpage to a local server for offline access |
 | [media-download](https://github.com/GeiserX/media-download) | Download all media files from any web page into a folder schema |
