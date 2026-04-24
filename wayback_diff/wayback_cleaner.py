@@ -89,10 +89,11 @@ class WaybackCleaner:
                 # This is a fallback for pages where the comment might be missing
                 next_tag = content.find(b'<meta', start_idx)
                 if next_tag > start_idx:
-                    end_idx = next_tag
+                    # Use <meta position directly as boundary (don't skip it)
+                    return content[:start_idx] + content[next_tag:]
                 else:
                     return content
-        
+
         # Remove the header section
         return content[:start_idx] + content[end_idx + len(end_marker):]
 

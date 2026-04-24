@@ -252,15 +252,35 @@ class DiffEngine:
                 'new_structure': [],
                 'similarity': 0.0
             }
-        
+
         # Compare structures
         old_structure = old_parser.structure
         new_structure = new_parser.structure
-        
+
         # Calculate similarity
-        matcher = SequenceMatcher(None, old_structure, new_structure)
+        # Convert structure dicts to hashable tuples for SequenceMatcher
+        def _make_hashable(d):
+            items = []
+            for k, v in sorted(d.items(), key=lambda x: str(x[0])):
+                if isinstance(v, dict):
+                    v = tuple(sorted(v.items()))
+                items.append((k, v))
+            return tuple(items)
+
+        try:
+            old_hashable = [_make_hashable(d) for d in old_structure]
+            new_hashable = [_make_hashable(d) for d in new_structure]
+            matcher = SequenceMatcher(None, old_hashable, new_hashable)
+        except (TypeError, Exception):
+            # Fallback if structures cannot be compared
+            return {
+                'structural_changes': [],
+                'old_structure': old_structure,
+                'new_structure': new_structure,
+                'similarity': 0.0
+            }
         similarity = matcher.ratio()
-        
+
         # Find structural differences
         structural_changes = []
         for tag, i1, i2, j1, j2 in matcher.get_opcodes():
