@@ -30,7 +30,7 @@ setup(
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
     ],
-    python_requires=">=3.9",
+    python_requires=">=3.10",
     install_requires=[
         "requests>=2.32.5",
         "beautifulsoup4>=4.14.3",
