@@ -1,6 +1,6 @@
 pytest>=8.4.2
 pytest-cov>=6.3.0
 pytest-mock>=3.15.1
-selenium>=4.47.0
+selenium>=4.48.0
 webdriver-manager>=4.1.2
 numpy>=2.2.6
